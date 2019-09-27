@@ -1,0 +1,3 @@
+auto delete homes - maybe on connect? find efficent way. Maybe on attempt TP?
+
+test everything.
