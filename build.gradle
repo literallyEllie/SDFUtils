@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '5.1.0'
+}
+
+group 'net.spacedelta'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    /* Non maven dependencies */
+    compileOnly fileTree(dir: 'dependencies', include: '*.jar')
+
+}
+
+shadowJar {
+    archiveName = "SDFUtils-v${version}.jar"
+}

@@ -1,0 +1,48 @@
+# Config for SDF Utils
+
+restrictions:
+  noTP:
+    enabled: true
+    bypassPerm: 'spacedelta.staff'
+    # Which relations will be affected by this restriction.
+    relations:
+      - enemy
+      - truce
+      - ally
+      - netural
+    denyMessage: '&eSorry you cannot TP in this faction land!'
+  noHome:
+    enabled: true
+    bypassPerm: 'spacedelta.staff'
+    relations:
+      - enemy
+      - truce
+      - ally
+      - netural
+    denyMessage: '&dSorry you cannot set a home here!'
+    # Unique settings to this restriction.
+    unique:
+      # Checks through homes of a user and deletes the homes which violate this restriction.
+      deleteViolatingHomes: true
+      # Commands to block in this setting. Will also block "plugin:command" style commands.
+      # Please keep lower-case.
+      blockedCommands:
+        - 'sethome'
+        - 'esethome'
+        - 'createhome'
+        - 'ecreatehome'
+  noLogout:
+    enabled: true
+    bypassPerm: 'spacedelta.staff'
+    # Which relations will be affected by this restriction.
+    relations:
+      - enemy
+      - truce
+      - ally
+      - netural
+    denyMessage: '&cYou were sent to spawn for being logged out in the enemy land.'
+    unique:
+      # The period when a player logs out, if they are in affected relation terrority, will they WON'T be sent back to spawn.
+      # When the time ends and they have not reconnected, they go back to spawn.
+      # (In seconds)
+      logoutGracePeriod: 60
