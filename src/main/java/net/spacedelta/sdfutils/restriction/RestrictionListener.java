@@ -1,9 +1,12 @@
 package net.spacedelta.sdfutils.restriction;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.massivecraft.factions.FPlayer;
 import com.massivecraft.factions.Faction;
 import com.massivecraft.factions.struct.Relation;
+import net.ess3.api.IUser;
 import net.spacedelta.sdfutils.SDFUtils;
 import net.spacedelta.sdfutils.restriction.model.RestrictionType;
 import net.spacedelta.sdfutils.util.UtilTime;
@@ -11,7 +14,10 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +33,13 @@ public class RestrictionListener implements Listener {
 
     private Map<UUID, Long> logoutTimers;
 
+    /**
+     * The main doer-of-things in the plugins.
+     * It listens for all the events and checks if the restrictions for said event is enabled and all of that.
+     * It also manages logout timers and cleaning up Essentials homes.
+     *
+     * @param sdfUtils the plugin instance.
+     */
     public RestrictionListener(SDFUtils sdfUtils) {
         this.sdfUtils = sdfUtils;
         this.logoutTimers = Maps.newHashMap();
@@ -51,7 +64,6 @@ public class RestrictionListener implements Listener {
             }
 
         }
-
     }
 
     /* Home command blocker. */
@@ -68,7 +80,12 @@ public class RestrictionListener implements Listener {
         final List<String> blockedCommands = restriction.getRestrictionNoHome().getBlockedCommands();
 
         if (commandArgOne.contains(":")) {
-            commandArgOne = commandArgOne.split(":")[1];
+            final String[] split = commandArgOne.split(":", 2);
+
+            if (split.length > 0) {
+                commandArgOne = split[1];
+            } else return;
+
         } else commandArgOne = commandArgOne.substring(1); // trim '/'
 
         String finalArg = commandArgOne;
@@ -85,11 +102,16 @@ public class RestrictionListener implements Listener {
     /* No logout stuff */
 
     @EventHandler
-    public void on(final PlayerLoginEvent e) {
+    public void on(final PlayerJoinEvent e) {
+        final Player player = e.getPlayer();
+
+        final Restriction homeRestriction = sdfUtils.getCachedConfiguration().getRestriction(RestrictionType.HOME);
+        if (homeRestriction.isEnabled() && homeRestriction.getRestrictionNoHome().isDeleteViolatingHomes() && !player.hasPermission(homeRestriction.getBypassPermission())) {
+            checkEssentialsHomesAndClean(player, homeRestriction, true);
+        }
+
         final Restriction restriction = sdfUtils.getCachedConfiguration().getRestriction(RestrictionType.LOGOUT);
         if (!restriction.isEnabled()) return;
-
-        final Player player = e.getPlayer();
 
         if (logoutTimers.containsKey(player.getUniqueId())) {
             if (player.hasPermission(restriction.getBypassPermission())) {
@@ -126,10 +148,60 @@ public class RestrictionListener implements Listener {
 
     }
 
-    // TODO maybe look to simplify.
+    /**
+     * A method to cleanup and remove violating homes of a player.
+     * Only use method for the {@link net.spacedelta.sdfutils.restriction.unique.RestrictionsNoHome} restriction.
+     *
+     * @param player the player to use.
+     * @param restriction a {@link net.spacedelta.sdfutils.restriction.unique.RestrictionsNoHome} instance of a restriction.
+     * @param verbose should output messages be sent the player.
+     */
+    public void checkEssentialsHomesAndClean(Player player, Restriction restriction, boolean verbose) {
+        final Map<String, Location> playerHomes = sdfUtils.getEssentialsUtils().getHomesOf(player);
+
+        List<String> violatingHomes = Lists.newArrayList();
+
+        playerHomes.forEach((homeName, location) -> {
+            if (violatesRestriction(player, restriction.getAffectedRelations(), location))
+                violatingHomes.add(homeName);
+        });
+
+        if (!violatingHomes.isEmpty()) {
+            final IUser essPlayer = sdfUtils.getEssentialsUtils().getEssPlayer(player);
+
+            violatingHomes.forEach(homeName -> {
+                try {
+                    essPlayer.delHome(homeName);
+                } catch (Exception e) {
+                    // shouldn't call.
+                    sdfUtils.logError("Failed to delete player home '" + homeName + "' of " + player.getName() + " when trying to delete bad homes");
+                    e.printStackTrace();
+                }
+            });
+
+            if (verbose) {
+                player.sendMessage(
+                        restriction.getRestrictionNoHome().getDeletedViolatedHomesMessage().replace("%deletedHomes%", Joiner.on(", ").join(violatingHomes)));
+            }
+
+        }
+    }
+
+
+    /**
+     * A very core method to check if a player/location is violating a restriction space.
+     *
+     * @param player the player to get the data of.
+     * @param affectedRelations the list of affected relations to go by.
+     * @param customLocation a custom position to use that has some relation to player
+     * @return if the restriction is being triggered in the position of the player/customLocation.
+     */
     private boolean violatesRestriction(Player player, List<Relation> affectedRelations, Location customLocation) {
+        // TODO maybe look to simplify.
         final Faction interferingFaction = sdfUtils.getFactionsUtil().getFactionAt(customLocation == null ? player.getLocation() : customLocation);
-        if (interferingFaction == null) return false;
+        if (interferingFaction == null || interferingFaction.isWilderness() || interferingFaction.isSafeZone()) {
+            return false;
+        }
 
         final FPlayer factionPlayer = sdfUtils.getFactionsUtil().getPlayer(player);
         // If player doesn't have faction, presume they are truce.

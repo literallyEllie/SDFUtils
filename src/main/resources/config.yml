@@ -9,8 +9,8 @@ restrictions:
       - enemy
       - truce
       - ally
-      - netural
-    denyMessage: '&eSorry you cannot TP in this faction land!'
+      - neutral
+    denyMessage: '&eSorry, you cannot TP there! That is another faction''s land.'
   noHome:
     enabled: true
     bypassPerm: 'spacedelta.staff'
@@ -18,12 +18,13 @@ restrictions:
       - enemy
       - truce
       - ally
-      - netural
-    denyMessage: '&dSorry you cannot set a home here!'
+      - neutral
+    denyMessage: '&eSorry, you cannot set a home here!'
     # Unique settings to this restriction.
     unique:
       # Checks through homes of a user and deletes the homes which violate this restriction.
       deleteViolatingHomes: true
+      deletedViolatedHomesMessage: '&cSome of your homes (%deletedHomes%) were automatically deleted for being in another faction''s territory.'
       # Commands to block in this setting. Will also block "plugin:command" style commands.
       # Please keep lower-case.
       blockedCommands:
@@ -39,7 +40,7 @@ restrictions:
       - enemy
       - truce
       - ally
-      - netural
+      - neutral
     denyMessage: '&cYou were sent to spawn for being logged out in the enemy land.'
     unique:
       # The period when a player logs out, if they are in affected relation terrority, will they WON'T be sent back to spawn.

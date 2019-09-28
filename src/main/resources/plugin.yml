@@ -1,11 +1,11 @@
 name: SDFUtils
 main: net.spacedelta.sdfutils.SDFUtils
-version: 0.1-SNAPSHOT
+version: 1.0-SNAPSHOT
 author: Ellie#006
 website: spacedelta.net
 description: A plugin to catch, patch exploits and issues common within Factions.
 
-depend: [SavageFactions]
+depend: [Factions]
 softdepend: [Essentials]
 
 commands:
