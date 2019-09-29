@@ -17,7 +17,7 @@ public class Restriction {
 
     private boolean enabled;
     private String bypassPermission;
-    private List<Relation> affectedRelations;
+    private List<LandRelation> affectedRelations;
     private String denyMessage;
 
     // Special
@@ -32,7 +32,7 @@ public class Restriction {
      * @param affectedRelations a list of faction relations which this restriction applies to.
      * @param denyMessage the message to send to a player when the restriction is triggered.
      */
-    public Restriction(RestrictionType restrictionType, boolean enabled, String bypassPermission, List<Relation> affectedRelations, String denyMessage) {
+    public Restriction(RestrictionType restrictionType, boolean enabled, String bypassPermission, List<LandRelation> affectedRelations, String denyMessage) {
         this.restrictionType = restrictionType;
         this.enabled = enabled;
         this.bypassPermission = bypassPermission;
@@ -103,7 +103,7 @@ public class Restriction {
      *
      * @return the list of affected relations.
      */
-    public List<Relation> getAffectedRelations() {
+    public List<LandRelation> getAffectedRelations() {
         return affectedRelations;
     }
 
@@ -112,7 +112,7 @@ public class Restriction {
      *
      * @param affectedRelations the new list.
      */
-    public void setAffectedRelations(List<Relation> affectedRelations) {
+    public void setAffectedRelations(List<LandRelation> affectedRelations) {
         this.affectedRelations = affectedRelations;
     }
 

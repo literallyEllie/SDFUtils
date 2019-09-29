@@ -9,6 +9,7 @@ import com.massivecraft.factions.struct.Relation;
 import net.ess3.api.IUser;
 import net.spacedelta.sdfutils.SDFUtils;
 import net.spacedelta.sdfutils.restriction.model.RestrictionType;
+import net.spacedelta.sdfutils.util.D;
 import net.spacedelta.sdfutils.util.UtilTime;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -190,24 +191,44 @@ public class RestrictionListener implements Listener {
 
     /**
      * A very core method to check if a player/location is violating a restriction space.
+     * It will get the possible faction at the point of either the user or a block.
+     * If that faction is null, it will return false.
+     * If the player has no faction they will be presumed neutral to a player faction.
+     * All the factions are iterated through and if one of the affected relations matches with the faction at the space
+     * it will trigger.
      *
      * @param player the player to get the data of.
      * @param affectedRelations the list of affected relations to go by.
      * @param customLocation a custom position to use that has some relation to player
      * @return if the restriction is being triggered in the position of the player/customLocation.
      */
-    private boolean violatesRestriction(Player player, List<Relation> affectedRelations, Location customLocation) {
+    private boolean violatesRestriction(Player player, List<LandRelation> affectedRelations, Location customLocation) {
         // TODO maybe look to simplify.
         final Faction interferingFaction = sdfUtils.getFactionsUtil().getFactionAt(customLocation == null ? player.getLocation() : customLocation);
-        if (interferingFaction == null || interferingFaction.isWilderness() || interferingFaction.isSafeZone()) {
+        if (interferingFaction == null /*|| interferingFaction.isWilderness() || interferingFaction.isSafeZone()*/) {
             return false;
         }
 
         final FPlayer factionPlayer = sdfUtils.getFactionsUtil().getPlayer(player);
-        // If player doesn't have faction, presume they are truce.
-        final Relation playerRelationToInterfering = factionPlayer.hasFaction() ? factionPlayer.getFaction().getRelationTo(interferingFaction) : Relation.TRUCE;
+        // If player doesn't have faction, they are neutral.
+        final Relation playerRelationToInterfering = factionPlayer.hasFaction() ? factionPlayer.getFaction().getRelationTo(interferingFaction) : Relation.NEUTRAL;
 
-        return affectedRelations.contains(playerRelationToInterfering);
+        for (LandRelation affectedRelation : affectedRelations) {
+
+            // Server factions.
+            if ((affectedRelation.isWilderness() && interferingFaction.isWilderness())
+                    || (affectedRelation.isSafeZone() && interferingFaction.isSafeZone())
+                    || (affectedRelation.isWarZone() && interferingFaction.isWarZone()))
+                return true;
+
+            // Check for player factions.
+            if (interferingFaction.isNormal()
+                    && affectedRelation.isNativeFactionRelation() && affectedRelation.getNativeFactionRelation() == playerRelationToInterfering)
+                return true;
+
+        }
+
+        return false;
     }
 
 }

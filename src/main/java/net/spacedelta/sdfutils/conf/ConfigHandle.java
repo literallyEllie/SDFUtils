@@ -3,6 +3,7 @@ package net.spacedelta.sdfutils.conf;
 import com.google.common.collect.Lists;
 import com.massivecraft.factions.struct.Relation;
 import net.spacedelta.sdfutils.SDFUtils;
+import net.spacedelta.sdfutils.restriction.LandRelation;
 import net.spacedelta.sdfutils.restriction.Restriction;
 import net.spacedelta.sdfutils.restriction.model.RestrictionType;
 import org.bukkit.ChatColor;
@@ -48,7 +49,7 @@ public class ConfigHandle {
                 continue;
             }
 
-            List<Relation> affectedRelations = Lists.newArrayList();
+            List<LandRelation> affectedRelations = Lists.newArrayList();
             try {
                 affectedRelations = parseRelationList(config.getStringList("restrictions." + rConfKey + ".relations"));
             } catch (IllegalArgumentException e) {
@@ -97,10 +98,10 @@ public class ConfigHandle {
      * @return a list of the parsed relations.
      * @throws IllegalArgumentException when one of the values does not map to a {@link Relation} enum value.
      */
-    private List<Relation> parseRelationList(List<String> relationList) throws
+    private List<LandRelation> parseRelationList(List<String> relationList) throws
             IllegalArgumentException {
-        List<Relation> relations = Lists.newArrayList();
-        relationList.forEach(s -> relations.add(Relation.valueOf(s.toUpperCase())));
+        List<LandRelation> relations = Lists.newArrayList();
+        relationList.forEach(s -> relations.add(LandRelation.valueOf(s.toUpperCase())));
         return relations;
     }
 

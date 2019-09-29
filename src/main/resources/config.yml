@@ -1,5 +1,9 @@
 # Config for SDF Utils
 
+# Relation types:
+# member, ally, truce, neutral, enemy, wilderness, warzone, safezone
+# Faction-less people to neutral to Player factions.
+
 restrictions:
   noTP:
     enabled: true
@@ -19,6 +23,7 @@ restrictions:
       - truce
       - ally
       - neutral
+      - warzone
     denyMessage: '&eSorry, you cannot set a home here!'
     # Unique settings to this restriction.
     unique:
